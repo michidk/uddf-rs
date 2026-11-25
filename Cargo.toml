@@ -1,0 +1,50 @@
+[package]
+name = "uddf"
+version = "0.0.0"
+authors = ["Michael Lohr <michael@lohr.dev>"]
+edition = "2024"
+rust-version = "1.85"
+description = "Lenient reader and schema-order writer for UDDF (Universal Dive Data Format) 3.2.x dive logs"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/michidk/uddf-rs"
+documentation = "https://docs.rs/uddf"
+readme = "README.md"
+keywords = ["uddf", "diving", "scuba", "dive-log", "xml"]
+categories = ["parser-implementations", "encoding", "wasm"]
+exclude = ["/.github", "/tests/fixtures"]
+
+[features]
+default = []
+## Derive `serde::Serialize` and `serde::Deserialize` on the model.
+serde = ["dep:serde"]
+
+[dependencies]
+jiff = { version = "1.0.3", default-features = false, features = ["std"] }
+quick-xml = { version = "0.42", default-features = false }
+roxmltree = { version = "0.21", default-features = false, features = ["std", "positions"] }
+serde = { version = "1.0.229", default-features = false, features = ["std", "derive"], optional = true }
+thiserror = { version = "2", default-features = false, features = ["std"] }
+
+[dev-dependencies]
+insta = { version = "1.49", default-features = false }
+serde_json = "1.0.154"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+unreachable_pub = "warn"
+unused_qualifications = "warn"
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+cargo = { level = "warn", priority = -1 }
+multiple_crate_versions = "allow"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+indexing_slicing = "deny"
+arithmetic_side_effects = "warn"
+as_conversions = "warn"
