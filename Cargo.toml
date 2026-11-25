@@ -1,6 +1,6 @@
 [package]
 name = "uddf"
-version = "0.0.0"
+version = "0.1.0"
 authors = ["Michael Lohr <michael@lohr.dev>"]
 edition = "2024"
 rust-version = "1.85"
@@ -11,7 +11,8 @@ documentation = "https://docs.rs/uddf"
 readme = "README.md"
 keywords = ["uddf", "diving", "scuba", "dive-log", "xml"]
 categories = ["parser-implementations", "encoding", "wasm"]
-exclude = ["/.github", "/tests/fixtures"]
+# Publish the library and its documentation, not local tooling or fixture tests.
+include = ["/src", "/LICENSE-MIT", "/LICENSE-APACHE", "/README.md"]
 
 [features]
 default = []
