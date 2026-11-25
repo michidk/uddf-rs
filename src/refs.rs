@@ -1,6 +1,6 @@
 //! Resolving `<link ref>` and other references to the elements whose `id` they name.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, hash_map::Entry};
 
 use crate::{
     Accommodation, Buddy, DecoModel, Dive, DiveBase, EquipmentKind, EquipmentPiece, Guide, Mix,
@@ -82,12 +82,13 @@ impl<'a> References<'a> {
         &self.duplicates
     }
 
-    fn add(&mut self, id: Option<&'a String>, target: Target<'a>) {
+    fn add(&mut self, id: Option<&'a str>, target: Target<'a>) {
         let Some(id) = id else { return };
-        if self.map.contains_key(id.as_str()) {
-            self.duplicates.push((id, target));
-        } else {
-            self.map.insert(id, target);
+        match self.map.entry(id) {
+            Entry::Occupied(_) => self.duplicates.push((id, target)),
+            Entry::Vacant(entry) => {
+                entry.insert(target);
+            }
         }
     }
 
@@ -95,17 +96,20 @@ impl<'a> References<'a> {
         for (kind, piece) in person.equipment.pieces() {
             match kind {
                 EquipmentKind::Tank | EquipmentKind::Suit | EquipmentKind::Rebreather => {}
-                kind => self.add(piece.id.as_ref(), Target::Piece { kind, piece }),
+                kind => self.add(piece.id.as_deref(), Target::Piece { kind, piece }),
             }
         }
         for tank in &person.equipment.tanks {
-            self.add(tank.piece.id.as_ref(), Target::Tank(tank));
+            self.add(tank.piece.id.as_deref(), Target::Tank(tank));
         }
         for suit in &person.equipment.suits {
-            self.add(suit.piece.id.as_ref(), Target::Suit(suit));
+            self.add(suit.piece.id.as_deref(), Target::Suit(suit));
         }
         for rebreather in &person.equipment.rebreathers {
-            self.add(rebreather.piece.id.as_ref(), Target::Rebreather(rebreather));
+            self.add(
+                rebreather.piece.id.as_deref(),
+                Target::Rebreather(rebreather),
+            );
         }
     }
 }
@@ -116,21 +120,21 @@ impl Uddf {
     pub fn references(&self) -> References<'_> {
         let mut refs = References::default();
         for shop in &self.shops {
-            refs.add(shop.id.as_ref(), Target::Shop(shop));
+            refs.add(shop.id.as_deref(), Target::Shop(shop));
         }
         if let Some(owner) = &self.owner {
-            refs.add(owner.id.as_ref(), Target::Owner(owner));
+            refs.add(owner.id.as_deref(), Target::Owner(owner));
             refs.person(owner);
         }
         for buddy in &self.buddies {
-            refs.add(buddy.person.id.as_ref(), Target::Buddy(buddy));
+            refs.add(buddy.person.id.as_deref(), Target::Buddy(buddy));
             refs.person(&buddy.person);
         }
         for base in &self.dive_bases {
-            refs.add(base.id.as_ref(), Target::DiveBase(base));
+            refs.add(base.id.as_deref(), Target::DiveBase(base));
             for guide in &base.guides {
                 refs.add(
-                    guide.id.as_ref(),
+                    guide.id.as_deref(),
                     Target::Guide {
                         guide,
                         dive_base: base,
@@ -139,37 +143,37 @@ impl Uddf {
             }
         }
         for site in &self.sites {
-            refs.add(site.id.as_ref(), Target::Site(site));
+            refs.add(site.id.as_deref(), Target::Site(site));
         }
         for trip in &self.trips {
-            refs.add(trip.id.as_ref(), Target::Trip(trip));
+            refs.add(trip.id.as_deref(), Target::Trip(trip));
             for part in &trip.parts {
                 if let Some(accommodation) = &part.accommodation {
                     refs.add(
-                        accommodation.id.as_ref(),
+                        accommodation.id.as_deref(),
                         Target::Accommodation(accommodation),
                     );
                 }
                 if let Some(vessel) = &part.vessel {
-                    refs.add(vessel.id.as_ref(), Target::Vessel(vessel));
+                    refs.add(vessel.id.as_deref(), Target::Vessel(vessel));
                 }
             }
         }
         for mix in &self.mixes {
-            refs.add(mix.id.as_ref(), Target::Mix(mix));
+            refs.add(mix.id.as_deref(), Target::Mix(mix));
         }
         for model in &self.deco_models {
             let id = match model {
-                DecoModel::Buehlmann(m) => m.id.as_ref(),
-                DecoModel::Vpm(m) => m.id.as_ref(),
-                DecoModel::Rgbm(m) => m.id.as_ref(),
+                DecoModel::Buehlmann(m) => m.id.as_deref(),
+                DecoModel::Vpm(m) => m.id.as_deref(),
+                DecoModel::Rgbm(m) => m.id.as_deref(),
             };
             refs.add(id, Target::DecoModel(model));
         }
         for group in &self.repetition_groups {
-            refs.add(group.id.as_ref(), Target::RepetitionGroup(group));
+            refs.add(group.id.as_deref(), Target::RepetitionGroup(group));
             for dive in &group.dives {
-                refs.add(dive.id.as_ref(), Target::Dive(dive));
+                refs.add(dive.id.as_deref(), Target::Dive(dive));
             }
         }
         refs

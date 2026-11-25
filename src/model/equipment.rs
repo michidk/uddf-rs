@@ -117,7 +117,7 @@ impl EquipmentKind {
 
 impl Equipment {
     /// The plain-piece lists with their kind, in schema order.
-    pub(crate) fn plain(&self) -> [(EquipmentKind, &Vec<EquipmentPiece>); 17] {
+    pub(crate) fn plain(&self) -> [(EquipmentKind, &[EquipmentPiece]); 17] {
         use EquipmentKind as K;
         [
             (K::Boots, &self.boots),
